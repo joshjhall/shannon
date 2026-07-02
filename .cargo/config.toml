@@ -1,0 +1,21 @@
+# Limit build parallelism to avoid linker "too many open files" errors
+# in resource-constrained environments (containers, CI).
+[build]
+jobs = 4
+
+[profile.dev]
+# Reduce linker file descriptor pressure by combining more crates per codegen unit.
+codegen-units = 16
+
+# Use the mold linker on Linux for a 5-10x faster link step. mold and clang are
+# installed by the devcontainer's INCLUDE_RUST_DEV feature (mold) + post-create
+# (clang). Non-devcontainer Linux contributors need `apt install mold clang`.
+# macOS and Windows are unaffected: no [target.*-apple-darwin] or *-windows-*
+# sections here, so they use the platform default linker.
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[target.aarch64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]

@@ -1,0 +1,5 @@
+[toolchain]
+# Pinned to match octarine (Shannon's core dependency) so the resolved
+# feature set and edition-2024 behaviour are identical across both repos.
+channel = "1.95.0"
+components = ["rustfmt", "clippy", "rust-analyzer"]

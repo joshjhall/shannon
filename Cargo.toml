@@ -1,0 +1,79 @@
+[package]
+name = "shannon"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/joshjhall/shannon"
+authors = ["Third Thought"]
+description = "Local hardened redaction proxy between an LLM coding client and its upstream API."
+
+[dependencies]
+# ─── Secure core (octarine) ─────────────────────────────────────────────────
+# Consumed as a published git dependency (pinned tag), NOT a workspace member —
+# see ARCHITECTURE.md §12. Bump the tag once octarine #540 (in-memory
+# StateStore) and #543 (InstanceCounter token operator) land in a release.
+octarine = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.3", default-features = false, features = [
+  "observe",
+  "security",
+  "http",
+] }
+
+# ─── Async runtime ──────────────────────────────────────────────────────────
+tokio = { version = "1.52", features = ["full"] }
+
+# ─── HTTP (inbound Axum/Tower, outbound reqwest+rustls) ──────────────────────
+axum = "0.8"
+tower = "0.5"
+reqwest = { version = "0.13", features = ["json", "rustls", "stream"], default-features = false }
+
+# ─── Serialization ──────────────────────────────────────────────────────────
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# ─── Utilities ──────────────────────────────────────────────────────────────
+uuid = { version = "1.0", features = ["v4", "v7", "serde"] }
+url = { version = "2.0", features = ["serde"] }
+
+# ─── Observability ──────────────────────────────────────────────────────────
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# ─── CLI ────────────────────────────────────────────────────────────────────
+clap = { version = "4.0", features = ["derive", "env"] }
+
+# ─── Errors ─────────────────────────────────────────────────────────────────
+thiserror = "2.0"
+
+[package.metadata.cargo-machete]
+# Scaffold deps: declared ahead of use per the CLAUDE.md build order (daemon,
+# shim, proxy, and the streaming rehydrate state machine are built against the
+# validation gates). main.rs is currently a stub, so cargo-machete sees every
+# dep as unused. Prune each entry as real code starts using it — the goal is an
+# empty `ignored` list once the MVP lands.
+ignored = [
+  "axum",
+  "clap",
+  "octarine",
+  "reqwest",
+  "serde",
+  "serde_json",
+  "thiserror",
+  "tokio",
+  "tower",
+  "tracing",
+  "tracing-subscriber",
+  "url",
+  "uuid",
+]
+
+[lints.rust]
+# Unlike octarine (which forbids unsafe), Shannon needs mlock/VirtualLock for
+# secret memory (ARCHITECTURE.md §8). Keep unsafe DENIED by default so it must
+# be opted into per-block with an explicit `#[allow(unsafe_code)]` + safety note.
+unsafe_code = "deny"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"
