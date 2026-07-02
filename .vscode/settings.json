@@ -1,0 +1,39 @@
+{
+  // Editor settings
+  "editor.formatOnSave": true,
+  "[json]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+
+  // Rust settings
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.cargo.features": "all",
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+
+  // Files to exclude from explorer
+  "files.exclude": {
+    "**/target": true,
+    "**/.git": true
+  },
+
+  // Files to exclude from search
+  "search.exclude": {
+    "**/target": true,
+    "Cargo.lock": true,
+    "containers": true
+  },
+
+  // Ignore the containers/ git submodule — it's read-only and managed separately.
+  "git.ignoredRepositories": ["/workspace/shannon/containers"]
+}

@@ -1,0 +1,79 @@
+services:
+  devcontainer:
+    build:
+      # Build from INSIDE the pinned containers submodule (matches octarine).
+      context: ../containers
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: mcr.microsoft.com/devcontainers/base:trixie
+        PROJECT_NAME: shannon
+        USERNAME: vscode
+        WORKING_DIR: /workspace/shannon
+        # Allow the entrypoint to fix permissions / mounts during dev.
+        ENABLE_PASSWORDLESS_SUDO: "true"
+        # Dev tooling: dprint, taplo, shellcheck, shfmt, lefthook, conform,
+        # gitleaks, actionlint, rumdl, typos, just, bacon, Claude Code CLI.
+        INCLUDE_DEV_TOOLS: "true"
+        # 1Password CLI for secret resolution at runtime.
+        INCLUDE_OP: "true"
+        # Rust is the primary (and only) runtime for Shannon. RUST_DEV brings
+        # the full toolchain + mold/clang linker, cargo-nextest, cargo-machete,
+        # cargo-deny, cargo-audit, bacon, etc.
+        INCLUDE_RUST_DEV: "true"
+        # Node provides MCP servers + supporting dev tooling. No Python: Shannon
+        # has no Python dependency (unlike octarine, whose arch_check is Python).
+        INCLUDE_NODE: "true"
+        NODE_VERSION: "24"
+      cache_from:
+        - type=local,src=/tmp/.buildx-cache
+      cache_to:
+        - type=local,dest=/tmp/.buildx-cache,mode=max
+    volumes:
+      - ..:/workspace/shannon
+      # Shared Rust caches (reduces duplication after image rebuild). Named
+      # volumes survive rebuilds; drop them to force a clean fetch/build.
+      - shannon-cargo-registry:/cache/cargo/registry
+      - shannon-cargo-git:/cache/cargo/git
+      - shannon-rustup:/cache/rustup
+      # codegraph index: <project>/.codegraph is symlinked here by the dev-tools
+      # first-startup hook, so the knowledge-graph index lives on this volume
+      # (out of the git tree, droppable to force a clean re-index).
+      - shannon-codegraph:/cache/codegraph
+    tmpfs:
+      # 1Password cache is kept in memory. No uid=/gid= for the same reason — this
+      # path is under /cache, so fix_cache_permissions aligns it to the runtime user.
+      - /cache/1password/secrets:size=8m,mode=0700
+    # Load environment variables from ../.env if present (optional; the file is
+    # gitignored local state and is absent in fresh git worktrees). Long-form
+    # `required: false` keeps compose validation passing from worktrees instead
+    # of erroring on a missing env file.
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      # Default MCPs. This explicit list REPLACES the default set, so codegraph
+      # is named here to keep it default-on for this project.
+      - CLAUDE_MCPS=filesystem,codegraph
+      - MEMORY_FILE_PATH=/workspace/shannon/.claude/memory
+      - SKIP_CASE_CHECK=true
+    # tini as PID 1 for zombie reaping (belt-and-suspenders with the Dockerfile).
+    init: true
+    # Required for the bindfs FUSE overlay (fixes macOS VirtioFS permissions).
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
+    command: ["sleep", "infinity"]
+    networks:
+      - shannon-network
+
+networks:
+  shannon-network:
+    driver: bridge
+
+volumes:
+  shannon-cargo-registry:
+  shannon-cargo-git:
+  shannon-rustup:
+  # codegraph knowledge-graph index (see the .codegraph symlink note above).
+  shannon-codegraph:

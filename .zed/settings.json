@@ -1,0 +1,27 @@
+{
+  // LSP binary overrides for Zed extensions whose own binary fetch races
+  // their postinstall (toast: "failed to start language server <name>").
+  // The matching binaries ship in this devcontainer via the containers
+  // dev-tools feature; redirecting here skips the per-extension download.
+  "lsp": {
+    "dprint": {
+      "binary": {
+        "path": "/usr/local/bin/dprint",
+        "arguments": ["lsp"]
+      }
+    },
+    "taplo": {
+      "binary": {
+        "path": "/usr/local/bin/taplo",
+        "arguments": ["lsp", "stdio"]
+      }
+    }
+  },
+  // dprint excludes .devcontainer/**, so compose files fall back to Zed's own
+  // indentation (default tab_size 4). Pin YAML to 2-space.
+  "languages": {
+    "YAML": {
+      "tab_size": 2
+    }
+  }
+}

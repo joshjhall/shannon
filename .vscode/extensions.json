@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    // Rust tools
+    "rust-lang.rust-analyzer",
+    "tamasfe.even-better-toml",
+    // Linting & formatting
+    "redhat.vscode-yaml",
+    "dprint.dprint",
+    "tekumara.typos-vscode",
+    // Docker & DevOps
+    "ms-azuretools.vscode-docker",
+    // Git
+    "donjayamanne.githistory",
+    // Editor enhancements
+    "usernamehw.errorlens",
+    "wayou.vscode-todo-highlight",
+    // Documentation
+    "bierner.markdown-mermaid",
+    // AI assistance
+    "Anthropic.claude-code"
+  ]
+}
