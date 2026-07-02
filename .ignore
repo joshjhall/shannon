@@ -1,0 +1,10 @@
+# .ignore — patterns for tools built on the `ignore` crate (ripgrep, fd,
+# cargo-machete). NOT git; this never affects what git tracks.
+#
+# `containers/` is a pinned, vendored submodule (`update = none`) — third-party
+# code Shannon consumes but does not maintain. Excluding it here keeps
+# cargo-machete (pre-commit `cargo-machete` hook) from flagging the submodule's
+# own crates as having unused deps, and keeps default rg/fd searches focused on
+# Shannon's own tree. Search it explicitly (e.g. `rg --no-ignore -g 'containers/**'`)
+# when you need to.
+containers/
