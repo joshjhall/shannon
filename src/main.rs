@@ -7,6 +7,7 @@
 //!
 //! This is a scaffold entry point — the daemon, launch shim, and streaming
 //! rehydrate state machine are built per the validation gates in `CLAUDE.md`.
+//! Reusable logic lives in the `shannon` library crate (`src/lib.rs`).
 
 fn main() {
     println!("shannon: scaffold — see ARCHITECTURE.md for the build plan");
