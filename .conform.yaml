@@ -1,0 +1,73 @@
+# conform configuration — enforces conventional-commit format on every commit
+# (via lefthook commit-msg) and every PR branch + title (via CI).
+#
+# Run locally:  conform enforce --commit-msg-file <path>
+# Run on a PR:  conform enforce --base-branch origin/main
+policies:
+  - type: commit
+    spec:
+      header:
+        # The conventional-commit policy below also enforces a 72-char cap on
+        # the description (text after `type(scope): `) per spec. The 89-char
+        # header ceiling here is the *outer* budget — it allows long
+        # `type(scope):` prefixes without expanding the description budget.
+        length: 89
+        invalidLastCharacters: .
+      body:
+        required: false
+      dco: false
+      gpg:
+        required: false
+      conventional:
+        types:
+          - build
+          - chore
+          - ci
+          - deps
+          - docs
+          - feat
+          - fix
+          - perf
+          - refactor
+          - test
+        # Scope allowlist seeded from Shannon's component architecture
+        # (ARCHITECTURE.md §4-§8) plus cross-cutting process scopes. Permissive
+        # on purpose — easier to prune than to add after a rejection.
+        #
+        # IMPORTANT — entries are Go regular expressions, NOT exact matches
+        # (conform compiles each with regexp.MustCompile + unanchored
+        # MatchString). Without `^...$`, `op` would match `feat(operation):`.
+        # Anchor every entry.
+        scopes:
+          # --- Shannon components ---
+          - ^daemon$ # always-on proxy process
+          - ^shim$ # launch shim (claude wrapper)
+          - ^session$ # session registry + lifecycle
+          - ^vault$ # per-session tokenization vault
+          - ^proxy$ # request/response forwarding
+          - ^detect$ # secret/PII detection (structured)
+          - ^anonymize$ # tokenization (octarine wrapper)
+          - ^rehydrate$ # streaming SSE deanonymize state machine
+          - ^stream$ # SSE boundary handling
+          - ^inject$ # system-block instruction injection
+          - ^sentinel$ # token sentinel format
+          - ^upstream$ # base-URL chaining / forwarding
+          - ^observe$ # logging + own-log redaction
+          # --- cross-cutting subsystems / process ---
+          - ^ci$
+          - ^claude$
+          - ^claude-md$
+          - ^containers$
+          - ^deps$
+          - ^devcontainer$
+          - ^docs$
+          - ^just$
+          - ^license$
+          - ^lints$
+          - ^octarine$
+          - ^release$
+          - ^security$
+          - ^shell$
+          - ^test$
+          - ^tests$
+          - ^tooling$

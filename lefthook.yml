@@ -1,0 +1,211 @@
+# Lefthook configuration for Shannon
+# Install hooks: lefthook install
+# Run manually:  lefthook run pre-commit [--all-files]
+#
+# Tooling is provided by the containers devcontainer (dev-tools + rust-dev
+# features). Container-only tools skip gracefully on a bare host — CI is the
+# safety net.
+
+# ============================================================================
+# Pre-commit stage: runs on `git commit`
+# ============================================================================
+pre-commit:
+  parallel: true
+  commands:
+
+    # --- General file checks (native shell, no Python runtime) ---
+    trailing-whitespace:
+      run: containers/bin/fix-trailing-whitespace.sh {staged_files}
+      stage_fixed: true
+
+    end-of-file-fixer:
+      run: containers/bin/fix-end-of-file.sh {staged_files}
+      stage_fixed: true
+
+    check-yaml:
+      glob: "*.{yml,yaml}"
+      run: |
+        fail=0
+        for f in {staged_files}; do
+          if ! yq . "$f" >/dev/null; then
+            echo "ERROR: invalid YAML: $f"
+            fail=1
+          fi
+        done
+        exit "$fail"
+
+    check-json:
+      glob: "*.json"
+      exclude:
+        - ".devcontainer/devcontainer.json"
+        - ".zed/settings.json"
+        - ".vscode/**"
+      run: |
+        fail=0
+        for f in {staged_files}; do
+          if ! jq empty "$f" >/dev/null 2>&1; then
+            echo "ERROR: invalid JSON: $f"
+            fail=1
+          fi
+        done
+        exit "$fail"
+
+    check-toml:
+      glob: "*.toml"
+      exclude:
+        - "containers/**"
+      run: taplo check {staged_files}
+
+    check-added-large-files:
+      run: |
+        max=512000  # 500 KB
+        fail=0
+        for f in {staged_files}; do
+          [ -f "$f" ] || continue
+          size=$(/usr/bin/wc -c < "$f")
+          if [ "$size" -gt "$max" ]; then
+            echo "ERROR: $f is $size bytes (max: $max)"
+            fail=1
+          fi
+        done
+        exit "$fail"
+
+    check-merge-conflict:
+      run: |
+        if /usr/bin/grep -lE '^(<{7} |>{7} |={7}$)' {staged_files} 2>/dev/null; then
+          echo "ERROR: merge conflict markers found in the above file(s)"
+          exit 1
+        fi
+
+    detect-private-key:
+      run: |
+        if /usr/bin/grep -lE 'BEGIN (RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY' {staged_files} 2>/dev/null; then
+          echo "ERROR: private key detected in the above file(s)"
+          exit 1
+        fi
+
+    # --- Security scanning ---
+
+    gitleaks:
+      skip:
+        - run: "! command -v gitleaks >/dev/null 2>&1"
+      run: gitleaks protect --staged --verbose --redact
+
+    # --- Spell check ---
+
+    typos:
+      skip:
+        - run: "! command -v typos >/dev/null 2>&1"
+      run: typos {staged_files}
+
+    # --- Rust formatting ---
+
+    cargo-fmt:
+      glob: "*.rs"
+      run: cargo fmt --all --
+
+    # --- Cargo dependency hygiene ---
+
+    cargo-machete:
+      glob: "**/Cargo.toml"
+      # cargo-machete ships with INCLUDE_RUST_DEV; skip gracefully outside that
+      # container — CI is the safety net.
+      skip:
+        - run: "! command -v cargo-machete >/dev/null 2>&1"
+      run: cargo machete
+
+    # --- JSON/YAML formatting (dprint) ---
+
+    dprint:
+      glob: "*.{json,yml,yaml}"
+      exclude:
+        - ".vscode/**"
+        - ".devcontainer/**"
+        - "containers/**"
+      skip:
+        - run: "! command -v dprint >/dev/null 2>&1"
+      run: dprint fmt {staged_files}
+      stage_fixed: true
+
+    # --- TOML formatting (taplo) ---
+
+    taplo-fmt:
+      glob: "*.toml"
+      # The repo-level .taplo.toml excludes containers/**, but lefthook passes
+      # explicit {staged_files} which bypasses taplo's include/exclude —
+      # re-exclude here.
+      exclude:
+        - "containers/**"
+      skip:
+        - run: "! command -v taplo >/dev/null 2>&1"
+      run: taplo format {staged_files}
+      stage_fixed: true
+
+    # --- Shell script linting ---
+
+    shellcheck:
+      glob: "*.sh"
+      exclude:
+        - "containers/**"
+      skip:
+        - run: "! command -v shellcheck >/dev/null 2>&1"
+      run: shellcheck {staged_files}
+
+    shfmt:
+      glob: "*.sh"
+      exclude:
+        - "containers/**"
+      skip:
+        - run: "! command -v shfmt >/dev/null 2>&1"
+      run: shfmt -w -i 2 -ci -bn {staged_files}
+      stage_fixed: true
+
+    # --- GitHub Actions workflow linting (actionlint) ---
+
+    actionlint:
+      glob: ".github/workflows/*.{yml,yaml}"
+      skip:
+        - run: "! command -v actionlint >/dev/null 2>&1"
+      run: actionlint -shellcheck "shellcheck --severity=warning" {staged_files}
+
+    # --- Markdown linting (rumdl) ---
+
+    rumdl:
+      glob: "*.md"
+      exclude:
+        - "CHANGELOG.md"
+        - "containers/**"
+      skip:
+        - run: "! command -v rumdl >/dev/null 2>&1"
+      run: rumdl check {staged_files}
+
+    # --- Custom guards ---
+
+    no-env-file:
+      run: |
+        if git diff --cached --name-only | /usr/bin/grep -qE "^\.env(\.secrets)?$"; then
+          echo "ERROR: .env file staged for commit"
+          exit 1
+        fi
+
+# ============================================================================
+# commit-msg stage: validates the message before the commit lands
+# ============================================================================
+commit-msg:
+  commands:
+    conform:
+      skip:
+        - run: "! command -v conform >/dev/null 2>&1"
+      run: conform enforce --commit-msg-file {1}
+
+# ============================================================================
+# Pre-push stage: runs on `git push`
+# ============================================================================
+pre-push:
+  parallel: false
+  commands:
+    cargo-clippy:
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    cargo-test:
+      run: cargo test --all-features
