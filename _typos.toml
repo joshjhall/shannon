@@ -1,0 +1,26 @@
+# typos configuration — code-aware spell checking
+# https://github.com/crate-ci/typos
+
+[default]
+# Skip identifiers that look like hex blobs or base64; these surface in
+# crypto/token fixtures, session UUIDs, and sentinel hashes as legitimate
+# non-words (e.g. the ⟦SSN·4f2a⟧ sentinel form).
+extend-ignore-identifiers-re = ["^[A-Fa-f0-9]{6,}$", "^[A-Za-z0-9+/]{32,}={0,2}$"]
+
+[default.extend-words]
+# Project + ecosystem names
+shannon = "shannon"
+octarine = "octarine"
+bifrost = "bifrost"
+
+# Domain acronyms / terms that resemble typos
+pii = "pii"
+ssrf = "ssrf"
+aead = "aead"
+mlock = "mlock"
+zeroize = "zeroize"
+rehydrate = "rehydrate"
+deanonymize = "deanonymize"
+
+[files]
+extend-exclude = ["containers/**", "target/**", "Cargo.lock", "**/*.lock"]

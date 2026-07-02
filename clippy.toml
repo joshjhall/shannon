@@ -1,0 +1,4 @@
+# Clippy configuration for Shannon.
+# Lint levels are set in Cargo.toml [lints.clippy]; this file carries
+# knob-style config only.
+msrv = "1.95"

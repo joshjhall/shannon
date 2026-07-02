@@ -1,0 +1,53 @@
+# rumdl configuration — Markdown linting and formatting
+#
+# Baseline adopted from octarine/.rumdl.toml (which migrated from mado +
+# dprint-markdown in 2026-04). Rules disabled below either don't fit our docs
+# (e.g., MD041 — agent/skill templates put titles in YAML frontmatter) or
+# require project-specific data we don't maintain (name lists, TOC templates).
+
+respect-gitignore = true
+
+exclude = [
+  "CHANGELOG.md",
+  "target/**",
+  "node_modules/**",
+  ".git/**",
+  ".vscode/**",
+  ".devcontainer/**",
+  "containers/**",         # submodule — has its own .rumdl.toml + CI gate
+  ".claude/memory/tmp/**", # ephemeral session state (gitignored anyway)
+  ".claude/worktrees/**",  # parallel-agent worktrees (gitignored anyway)
+]
+
+disable = [
+  # Our agent/skill templates put the title in YAML frontmatter rather than an
+  # H1 heading. rumdl's front-matter-title exemption doesn't suppress the
+  # finding on our templates, so keep it off.
+  "MD041",
+  # Opinionated / requires project-specific configuration:
+  "MD043", # required heading structure (needs a template)
+  "MD044", # proper names capitalization (needs a names list)
+  "MD054", # link/image style — redundant with MD048-MD050
+  "MD057", # relative link existence (many cross-refs resolve at build time)
+  "MD059", # link text should be descriptive
+  "MD060", # table column alignment
+  "MD061", # forbidden terms (needs a term list)
+  "MD063", # heading capitalization
+  "MD072", # frontmatter keys alphabetical
+  "MD073", # TOC matches document headings (needs a TOC)
+  "MD074", # MkDocs nav entries (we don't use MkDocs)
+]
+
+# Line length: 120 characters of prose is plenty; code blocks and tables often
+# exceed that legitimately.
+[MD013]
+line_length = 120
+code_blocks = false
+tables = false
+
+# Per-file overrides: .claude/ files use YAML frontmatter with long description
+# fields by design (skill discovery, memory schema), so MD013 doesn't apply.
+[per-file-ignores]
+".claude/memory/**" = ["MD013"]
+".claude/skills/**" = ["MD013"]
+".claude/agents/**" = ["MD013"]

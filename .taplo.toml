@@ -1,0 +1,18 @@
+# Taplo configuration — TOML formatter and schema linter.
+# Config reference: https://taplo.tamasfe.dev/configuration/file.html
+#
+# Style choices mirror octarine's .taplo.toml:
+#   - 2-space indent: matches dprint's JSON indent and the containers
+#     standard. TOML config is data, not Rust code, so alignment with dprint
+#     is the better analogy than rustfmt's 4.
+#   - column_width 100: matches rustfmt max_width so Cargo.toml inline tables
+#     wrap consistently with the Rust they describe.
+#   - reorder_keys NOT enabled: Cargo.toml groups deps under category comments
+#     that alphabetisation would shatter.
+
+include = ["**/*.toml"]
+exclude = ["containers/**", "target/**", "node_modules/**", ".git/**"]
+
+[formatting]
+indent_string = "  "
+column_width = 100

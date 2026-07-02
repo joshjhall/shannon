@@ -1,0 +1,51 @@
+#:schema https://dystroy.org/bacon/.bacon.schema.json
+
+# bacon project configuration — see https://dystroy.org/bacon/config/
+#
+# bacon watches the crate and reruns the active job on every change. Defaults
+# below mirror the flag sets used by the `just check` / `just clippy` /
+# `just test` recipes so local bacon output matches `just preflight` and CI.
+#
+# Run `bacon` (or `just bacon`) to start with the default `check` job. Press
+# `c` for clippy, `t` for test, `d` to open rustdoc, `?` for shortcuts.
+
+default_job = "check"
+env.CARGO_TERM_COLOR = "always"
+
+# Type-check with all features. Matches `just check`.
+[jobs.check]
+command = ["cargo", "check", "--all-features"]
+need_stdout = false
+
+# Clippy with deny-warnings, all features, all targets. Matches `just clippy`.
+[jobs.clippy]
+command = ["cargo", "clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+need_stdout = false
+
+# Run all tests. Matches `just test` (-j4 honours the linker file-descriptor
+# cap from .cargo/config.toml).
+[jobs.test]
+command = ["cargo", "test", "--all-features", "-j4"]
+need_stdout = true
+
+# Run a single test by name pattern. Invoke as:
+#   bacon test-filter -- PATTERN
+[jobs.test-filter]
+command = ["cargo", "test", "--all-features", "-j4", "--"]
+need_stdout = true
+
+# Rustdoc. Matches `just doc` minus `RUSTDOCFLAGS=-D warnings` — CI enforces
+# warning-free docs; bacon stays fast for inner-loop feedback.
+[jobs.doc]
+command = ["cargo", "doc", "--no-deps", "--all-features"]
+need_stdout = false
+
+# Open rustdoc in browser once it compiles, then return to the prior job.
+[jobs.doc-open]
+command = ["cargo", "doc", "--no-deps", "--all-features", "--open"]
+need_stdout = false
+on_success = "back"
+
+# Project keybindings (global prefs live in the user's bacon prefs.toml).
+[keybindings]
+c = "job:clippy"
