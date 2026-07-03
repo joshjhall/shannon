@@ -11,15 +11,20 @@ description = "Local hardened redaction proxy between an LLM coding client and i
 [dependencies]
 # ─── Secure core (octarine) ─────────────────────────────────────────────────
 # Consumed as a published git dependency (pinned tag), NOT a workspace member —
-# see ARCHITECTURE.md §12. v0.3.0-beta.4 is the first release whose tree carries
+# see ARCHITECTURE.md §12. v0.3.0-beta.4 was the first release whose tree carried
 # the in-memory StateStore (`InMemoryStore`) and the `InstanceCounter{Anonymizer,
-# Deanonymizer}` token operators Shannon's tokenization path depends on.
+# Deanonymizer}` token operators Shannon's tokenization path depends on; we track
+# the latest beta (currently v0.3.0-beta.5).
 #
 # NOTE on features: `anonymize`/`identifiers`/`crypto` are always-compiled
 # octarine *modules*, not Cargo features — do not list them here. The vault +
 # operators need no feature flag; `crypto-validation` gates the JWT/x509/ssh-key
 # structured detectors (ARCHITECTURE.md §3.4).
-octarine = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.4", default-features = false, features = [
+#
+# NOTE on the name: the umbrella crate publishes as `octarine-core` (the bare
+# `octarine` name is owned by an unrelated crate — octarine #655), but its lib
+# name stays `octarine`, so source still imports it as `use octarine::…`.
+octarine-core = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.5", default-features = false, features = [
   "observe",
   "security",
   "http",
@@ -61,7 +66,7 @@ thiserror = "2.0"
 ignored = [
   "axum",
   "clap",
-  "octarine",
+  "octarine-core",
   "reqwest",
   "serde",
   "serde_json",

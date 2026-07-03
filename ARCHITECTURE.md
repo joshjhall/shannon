@@ -314,12 +314,15 @@ NOT need local checkout access to the octarine repo. Pin a git tag in `Cargo.tom
 
 ```toml
 [dependencies]
-octarine = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.4", default-features = false, features = ["observe", "security", "http", "crypto-validation"] }
+# Package publishes as `octarine-core` (octarine #655); lib name stays `octarine`,
+# so source still imports `use octarine::…`.
+octarine-core = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.5", default-features = false, features = ["observe", "security", "http", "crypto-validation"] }
 ```
 
-`v0.3.0-beta.4` is the first release whose tree carries the in-memory
+`v0.3.0-beta.4` was the first release whose tree carried the in-memory
 `InMemoryStore` (octarine #540) and the `InstanceCounter{Anonymizer,Deanonymizer}`
-operators (octarine #543/#653) Shannon's tokenization path needs. Feature note:
+operators (octarine #543/#653) Shannon's tokenization path needs; we track the
+latest beta (currently `v0.3.0-beta.5`). Feature note:
 `anonymize`/`identifiers`/`crypto` are always-compiled octarine *modules*, not
 Cargo features — the vault + operators need no flag; `crypto-validation` gates the
 JWT/x509/ssh-key detectors.
