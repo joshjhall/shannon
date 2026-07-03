@@ -260,8 +260,12 @@ as protection against in-process compromise.
 - **Language: Rust.** Single static binary, fast startup (wraps every API call),
   `mlock`/`VirtualLock`, and it's what octarine is. Avoid Node for the core.
 - **HTTP: Axum/Tower** (octarine `http` feature) + `reqwest` (rustls) upstream.
-- **Octarine deps:** `anonymize` (vault, operators), `crypto/secrets`, `identifiers`,
-  `crypto/validation`, `observe` (own-log redaction), `http`.
+- **Octarine modules used** (always-compiled, not Cargo features): `anonymize`
+  (vault + operators), `crypto::secrets`, `identifiers`, `crypto::validation`,
+  `observe` (own-log redaction). The **Cargo features** these need are just
+  `observe`, `security`, `http`, and `crypto-validation` (for the JWT/x509/ssh
+  detectors) — `anonymize`/`identifiers`/`crypto::secrets` are on by default and
+  take no feature flag.
 - Shannon = separate crate/binary depending on octarine via git tag.
 
 ---
@@ -310,10 +314,15 @@ NOT need local checkout access to the octarine repo. Pin a git tag in `Cargo.tom
 
 ```toml
 [dependencies]
-octarine = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.3", default-features = false, features = ["observe", "security", "http"] }
+octarine = { git = "https://github.com/joshjhall/octarine", tag = "v0.3.0-beta.4", default-features = false, features = ["observe", "security", "http", "crypto-validation"] }
 ```
 
-(Bump the tag once #540/#543 land in a release.)
+`v0.3.0-beta.4` is the first release whose tree carries the in-memory
+`InMemoryStore` (octarine #540) and the `InstanceCounter{Anonymizer,Deanonymizer}`
+operators (octarine #543/#653) Shannon's tokenization path needs. Feature note:
+`anonymize`/`identifiers`/`crypto` are always-compiled octarine *modules*, not
+Cargo features — the vault + operators need no flag; `crypto-validation` gates the
+JWT/x509/ssh-key detectors.
 
 - Repo: <https://github.com/joshjhall/octarine>
 - Module map (paths within that repo, for orientation only):

@@ -55,8 +55,10 @@ Steps 3 and 4 are make-or-break. Do not over-invest in polish before they pass.
 - Shannon is its **own crate**, depending on octarine via git tag — NOT an octarine
   workspace member (octarine forbids `unsafe`; keep proxy concerns separate).
 - HTTP: Axum/Tower (octarine `http` feature) inbound; `reqwest` (rustls) upstream.
-- Octarine deps: `anonymize` (vault + operators), `crypto/secrets`, `identifiers`,
-  `crypto/validation`, `observe`, `http`.
+- Octarine modules used (always-compiled, not Cargo features): `anonymize` (vault +
+  operators), `crypto::secrets`, `identifiers`, `crypto::validation`, `observe`.
+  The Cargo **features** to enable are `observe`, `security`, `http`,
+  `crypto-validation` — `anonymize`/`identifiers`/`crypto::secrets` take no flag.
 - Async: tokio.
 - Errors: prefer octarine's `Problem` type where it fits; otherwise `thiserror`.
 
