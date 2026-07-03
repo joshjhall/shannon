@@ -2104,9 +2104,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "octarine"
-version = "0.3.0-beta.4"
-source = "git+https://github.com/joshjhall/octarine?tag=v0.3.0-beta.4#e3827988caff8f6074edbbc88d265aadf333fcbe"
+name = "octarine-core"
+version = "0.3.0-beta.5"
+source = "git+https://github.com/joshjhall/octarine?tag=v0.3.0-beta.5#c7cd9999bcfb7da40fc031fcc4468483b515337a"
 dependencies = [
  "aes-gcm",
  "aho-corasick",
@@ -2172,8 +2172,8 @@ dependencies = [
 
 [[package]]
 name = "octarine-problem"
-version = "0.3.0-beta.4"
-source = "git+https://github.com/joshjhall/octarine?tag=v0.3.0-beta.4#e3827988caff8f6074edbbc88d265aadf333fcbe"
+version = "0.3.0-beta.5"
+source = "git+https://github.com/joshjhall/octarine?tag=v0.3.0-beta.5#c7cd9999bcfb7da40fc031fcc4468483b515337a"
 dependencies = [
  "serde_json",
  "thiserror 2.0.18",
@@ -2859,9 +2859,9 @@ dependencies = [
 
 [[package]]
 name = "rustc-hash"
-version = "2.1.2"
+version = "2.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94300abf3f1ae2e2b8ffb7b58043de3d399c73fa6f4b73826402a5c457614dbe"
+checksum = "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d"
 
 [[package]]
 name = "rustc_version"
@@ -3172,7 +3172,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "clap",
- "octarine",
+ "octarine-core",
  "reqwest",
  "serde",
  "serde_json",
